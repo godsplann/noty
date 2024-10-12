@@ -53,7 +53,7 @@ fun ListScreen(
 }
 
 @Composable
-fun NoteListItem(modifier: Modifier = Modifier,note: Note) {
+fun NoteListItem(modifier: Modifier = Modifier, note: Note) {
     Row(modifier = modifier.fillMaxWidth()) {
         Text(text = note.title)
     }
@@ -65,12 +65,14 @@ fun ListScreenPreview() {
     ListScreen(
         listOf(
             Note(
+                id = 1,
                 title = "Title 1",
                 content = "Content 2",
                 createdAt = 12415,
                 updatedAt = 1526347
             ),
             Note(
+                id = 2,
                 title = "Title 2",
                 content = "Content 2",
                 createdAt = 12415,
