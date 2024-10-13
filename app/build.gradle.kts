@@ -19,6 +19,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments["room.schemaLocation"] = "$projectDir/schemas"
+            }
+        }
     }
 
     buildTypes {
@@ -40,6 +46,13 @@ android {
     buildFeatures {
         compose = true
     }
+    configurations.all {
+        resolutionStrategy.eachDependency {
+            when {
+                requested.name == "javapoet" -> useVersion("1.13.0")
+            }
+        }
+    }
 }
 
 dependencies {
@@ -53,12 +66,15 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation)
+    implementation(libs.androidx.compose.viewmodel)
+    implementation(libs.androidx.compose.hilt.navigation)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.hilt)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+    implementation(libs.java.poet)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

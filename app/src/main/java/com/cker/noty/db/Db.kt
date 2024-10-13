@@ -2,7 +2,7 @@ package com.cker.noty.db
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.cker.noty.data.Note
+import com.cker.noty.data.model.Note
 
 @Database(entities = [Note::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {

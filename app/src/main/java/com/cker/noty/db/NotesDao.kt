@@ -5,19 +5,19 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.cker.noty.data.Note
+import com.cker.noty.data.model.Note
 
 @Dao
 interface NotesDao {
     @Query("SELECT * FROM notes")
-    fun getAll(): List<Note>
+    suspend fun getAll(): List<Note>
 
-    @Query("SELECT * FROM notes WHERE id IN (:noteIds)")
-    fun loadAllByIds(noteIds: IntArray): List<Note>
+    @Query("SELECT * FROM notes WHERE id = (:noteId)")
+    suspend fun getNoteById(noteId: Int): List<Note>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(vararg note: Note)
+    suspend fun insert(note: Note)
 
-    @Delete
-    fun delete(note: Note)
+    @Query("DELETE FROM notes WHERE id = :noteId")
+    suspend fun delete(noteId: Int)
 }

@@ -1,5 +1,7 @@
-package com.cker.noty.ui.theme
+package com.cker.noty.ui.notes
 
+import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,10 +16,19 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.cker.noty.data.Note
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.cker.noty.data.model.Note
+import com.cker.noty.ui.addorupdatenote.AddOrUpdateNote
 import kotlinx.serialization.Serializable
 
 
@@ -26,9 +37,22 @@ object ListScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListScreen(
-    notes: List<Note> = emptyList()
+fun NotesList(
+    navController: NavController = rememberNavController(),
+    noteListViewModel: NoteListViewModel = hiltViewModel()
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner.lifecycle) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            noteListViewModel.effects.collect {
+                when (it) {
+                    is NoteListEffect.NavigateToAddNote -> {
+                        navController.navigate(AddOrUpdateNote(it.noteId))
+                    }
+                }
+            }
+        }
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -37,17 +61,32 @@ fun ListScreen(
         },
         floatingActionButton = {
             Icon(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.clickable {
+                    noteListViewModel.onEvent(NoteListEvent.OnAddNoteClicked)
+                }.padding(16.dp),
                 imageVector = Icons.Filled.Add,
                 contentDescription = "Add Note"
             )
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
-        LazyColumn(modifier = Modifier.padding(innerPadding)) {
-            items(notes) { note ->
-                NoteListItem(note = note)
-            }
+        val uiState = noteListViewModel.state.collectAsState()
+        if (uiState.value.notes.isEmpty()) {
+            Text("No notes found")
+        } else {
+            NotesListContent(Modifier.padding(innerPadding))
+        }
+    }
+}
+
+@Composable
+fun NotesListContent(
+    modifier: Modifier = Modifier,
+    notes: List<Note> = emptyList()
+) {
+    LazyColumn(modifier = modifier) {
+        items(notes) { note ->
+            NoteListItem(note = note)
         }
     }
 }
@@ -62,8 +101,8 @@ fun NoteListItem(modifier: Modifier = Modifier, note: Note) {
 @Preview(showBackground = true)
 @Composable
 fun ListScreenPreview() {
-    ListScreen(
-        listOf(
+    NotesListContent(
+        notes = listOf(
             Note(
                 id = 1,
                 title = "Title 1",

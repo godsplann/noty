@@ -14,6 +14,9 @@ import dagger.hilt.components.SingletonComponent
 class DatabaseModule {
 
     @Provides
+    fun providesNotesDao(db: AppDatabase) = db.notesDao()
+
+    @Provides
     fun providesDb(@ApplicationContext applicationContext: Context) =
         Room.databaseBuilder(applicationContext, AppDatabase::class.java, "noty-db")
             .build()

@@ -1,4 +1,4 @@
-package com.cker.noty.data
+package com.cker.noty.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

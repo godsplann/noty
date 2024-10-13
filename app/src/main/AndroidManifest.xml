@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name="com.cker.noty.NotesApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -13,9 +14,8 @@
         android:theme="@style/Theme.ToDo"
         tools:targetApi="31">
         <activity
-            android:name="com.cker.noty.MainActivity"
+            android:name="com.cker.noty.ui.MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.ToDo">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
