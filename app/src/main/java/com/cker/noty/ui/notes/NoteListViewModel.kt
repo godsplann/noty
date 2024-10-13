@@ -5,10 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.cker.noty.data.model.Note
 import com.cker.noty.domain.usecase.NoteCrudUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,8 +20,8 @@ class NoteListViewModel @Inject constructor(
     private val _state = MutableStateFlow(NoteListState())
     val state: StateFlow<NoteListState> = _state
 
-    private val _effects = MutableSharedFlow<NoteListEffect>(replay = 1)
-    val effects: Flow<NoteListEffect> = _effects
+    private val _effects = Channel<NoteListEffect>(Channel.BUFFERED)
+    val effects = _effects.receiveAsFlow()
 
     init {
         loadNotes()
@@ -35,13 +35,15 @@ class NoteListViewModel @Inject constructor(
     }
 
     fun onEvent(event: NoteListEvent) {
-        when (event) {
-            is NoteListEvent.OnAddNoteClicked -> {
-                _effects.tryEmit(NoteListEffect.NavigateToAddNote(null))
-            }
+        viewModelScope.launch {
+            when (event) {
+                is NoteListEvent.OnAddNoteClicked -> {
+                    _effects.send(NoteListEffect.NavigateToAddNote(null))
+                }
 
-            is NoteListEvent.OnNoteClicked -> {
-                _effects.tryEmit(NoteListEffect.NavigateToAddNote(event.noteId))
+                is NoteListEvent.OnNoteClicked -> {
+                    _effects.send(NoteListEffect.NavigateToAddNote(event.noteId))
+                }
             }
         }
     }

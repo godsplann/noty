@@ -27,6 +27,6 @@ private fun NavGraphBuilder.setUpNavGraph(navController: NavController) {
     }
 
     composable<AddOrUpdateNote> {
-        AddOrUpdateNoteRoute()
+        AddOrUpdateNoteRoute(navController)
     }
 }

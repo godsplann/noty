@@ -1,6 +1,5 @@
 package com.cker.noty.ui.notes
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -74,7 +73,7 @@ fun NotesList(
         if (uiState.value.notes.isEmpty()) {
             Text("No notes found")
         } else {
-            NotesListContent(Modifier.padding(innerPadding))
+            NotesListContent(Modifier.padding(innerPadding), uiState.value.notes)
         }
     }
 }
