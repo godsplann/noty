@@ -9,7 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import com.cker.noty.ui.addorupdatenote.AddOrUpdateNote
 import com.cker.noty.ui.addorupdatenote.AddOrUpdateNoteRoute
 import com.cker.noty.ui.notes.ListScreen
-import com.cker.noty.ui.notes.NotesList
+import com.cker.noty.ui.notes.Notes
 
 @Composable
 fun NotesAppNavigation() {
@@ -23,7 +23,7 @@ fun NotesAppNavigation() {
 
 private fun NavGraphBuilder.setUpNavGraph(navController: NavController) {
     composable<ListScreen> {
-        NotesList(navController)
+        Notes(navController)
     }
 
     composable<AddOrUpdateNote> {

@@ -4,7 +4,10 @@ import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -20,6 +23,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.cker.noty.ui.theme.NotyTypography
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -54,7 +58,16 @@ fun AddOrUpdateNoteRoute(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Add Note")
+                    Text("Add Note", style = NotyTypography.h2)
+                },
+                navigationIcon = {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        modifier = Modifier.clickable {
+                            navController.popBackStack()
+                        }
+                    )
                 }
             )
         }
@@ -62,26 +75,28 @@ fun AddOrUpdateNoteRoute(
         Column(modifier = Modifier.padding(innerPadding)) {
             val state = addOrUpdateNoteViewModel.state.collectAsState().value
             TextField(
-                value = state.title,
+                value = state.note.title,
                 onValueChange = {
                     addOrUpdateNoteViewModel.onEvent(AddOrUpdateNoteEvent.OnTitleChanged(it))
                 },
-                label = { Text("Title") }
+                label = { Text("Title", style = NotyTypography.h4) }
             )
 
             TextField(
-                value = state.description,
+                value = state.note.content,
                 onValueChange = {
-                    addOrUpdateNoteViewModel.onEvent(AddOrUpdateNoteEvent.OnDescriptionChanged(it))
+                    addOrUpdateNoteViewModel.onEvent(AddOrUpdateNoteEvent.OnContentChanged(it))
                 },
                 label = { Text("Description") }
             )
 
             Text(
                 text = "Save",
-                modifier = Modifier.padding(top = 16.dp).clickable {
-                    addOrUpdateNoteViewModel.onEvent(AddOrUpdateNoteEvent.OnNoteSaved)
-                }
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .clickable {
+                        addOrUpdateNoteViewModel.onEvent(AddOrUpdateNoteEvent.OnNoteSaved)
+                    }
             )
         }
     }
