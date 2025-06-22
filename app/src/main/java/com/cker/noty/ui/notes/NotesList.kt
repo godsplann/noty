@@ -22,6 +22,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -61,7 +62,21 @@ fun Notes(
             }
         }
     }
-    val uiState = noteListViewModel.state.collectAsState()
+    val uiState by noteListViewModel.state.collectAsStateWithLifecycle()
+
+
+    NotesListContent(
+        uiState,
+        noteListViewModel::onEvent,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NotesListContent(
+    uiState: NoteListState,
+    onEvent: (NoteListEvent) -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -77,7 +92,7 @@ fun Notes(
         floatingActionButton = {
             Icon(
                 modifier = Modifier
-                    .clickable { noteListViewModel.onEvent(NoteListEvent.OnAddNoteClicked) }
+                    .clickable { onEvent(NoteListEvent.OnAddNoteClicked) }
                     .padding(16.dp),
                 imageVector = Icons.Filled.Add,
                 contentDescription = "Add Note"
@@ -85,36 +100,22 @@ fun Notes(
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
-        if (uiState.value.isLoading) {
+        if (uiState.isLoading) {
             CircularProgressIndicator()
         } else {
-            NotesListContent(
-                Modifier.padding(innerPadding),
-                uiState.value.notes,
-                noteListViewModel::onEvent,
-            )
-        }
-    }
-}
-
-@Composable
-fun NotesListContent(
-    modifier: Modifier = Modifier,
-    notes: List<Note> = emptyList(),
-    onEvent: (NoteListEvent) -> Unit
-) {
-    if (notes.isEmpty()) {
-        Text("No notes found")
-        return
-    }
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.DarkGray)
-    ) {
-        items(notes) { note ->
-            NoteListItem(note = note, onEvent = onEvent)
-            HorizontalDivider(modifier = Modifier.background(Color.White))
+            if (uiState.notes.isEmpty()) {
+                Text("No notes found")
+                return@Scaffold
+            }
+            LazyColumn(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+            ) {
+                items(uiState.notes) { note ->
+                    NoteListItem(note = note, onEvent = onEvent)
+                }
+            }
         }
     }
 }
@@ -125,42 +126,39 @@ fun NoteListItem(
     note: Note,
     onEvent: (NoteListEvent) -> Unit
 ) {
-    Row(
+    Text(
         modifier = modifier
             .fillMaxWidth()
             .padding(12.dp)
             .clickable { onEvent(NoteListEvent.OnNoteClicked(note.id)) },
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(text = note.title, color = Color.White, style = NotyTypography.h5)
-        Icon(
-            painter = painterResource(R.drawable.baseline_delete_24),
-            contentDescription = "Delete",
-            tint = Color.White,
-            modifier = Modifier.clickable { onEvent(NoteListEvent.OnDeleteNoteClicked(note.id)) }
-        )
-    }
+        text = note.title,
+        color = Color.DarkGray,
+        style = NotyTypography.h5
+    )
 }
+
 
 @Preview(showBackground = true)
 @Composable
 fun ListScreenPreview() {
     NotesListContent(
-        notes = listOf(
-            Note(
-                id = 1,
-                title = "Title 1",
-                content = "Content 2",
-                createdAt = 12415,
-                updatedAt = 1526347
-            ),
-            Note(
-                id = 2,
-                title = "Title 2",
-                content = "Content 2",
-                createdAt = 12415,
-                updatedAt = 1526347
-            ),
+        uiState = NoteListState(
+            listOf(
+                Note(
+                    id = 1,
+                    title = "Title 1",
+                    content = "Content 2",
+                    createdAt = 12415,
+                    updatedAt = 1526347
+                ),
+                Note(
+                    id = 2,
+                    title = "Title 2",
+                    content = "Content 2",
+                    createdAt = 12415,
+                    updatedAt = 1526347
+                ),
+            )
         ),
         onEvent = {}
     )

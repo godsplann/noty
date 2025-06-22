@@ -3,26 +3,37 @@ package com.cker.noty.ui.addorupdatenote
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.cker.noty.data.model.Note
 import com.cker.noty.ui.theme.NotyTypography
 import kotlinx.serialization.Serializable
 
@@ -31,7 +42,6 @@ data class AddOrUpdateNote(
     val noteId: Int?,
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddOrUpdateNoteRoute(
     navController: NavController = rememberNavController(),
@@ -49,55 +59,111 @@ fun AddOrUpdateNoteRoute(
                     is AddOrUpdateNoteEffect.ShowError -> {
                         Log.e("AddOrUpdateNoteRoute", it.error)
                     }
+
+                    AddOrUpdateNoteEffect.NavigateBack -> navController.popBackStack()
                 }
             }
         }
     }
 
+    val uiState by addOrUpdateNoteViewModel.state.collectAsStateWithLifecycle()
+
+    AddOrUpdateNoteContent(uiState, addOrUpdateNoteViewModel::onEvent)
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddOrUpdateNoteContent(
+    uiState: AddOrUpdateNoteState,
+    onEvent: (AddOrUpdateNoteEvent) -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Add Note", style = NotyTypography.h2)
+                    Text(
+                        text = if (uiState.isEditing) "Update Note" else "Add Note",
+                        style = NotyTypography.h2
+                    )
                 },
                 navigationIcon = {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
                         modifier = Modifier.clickable {
-                            navController.popBackStack()
+                            onEvent(AddOrUpdateNoteEvent.OnBackPressed)
                         }
                     )
+                },
+                actions = {
+                    Button(
+                        onClick = {},
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.LightGray,
+                            contentColor = Color.Black
+                        )
+                    ) {
+                        Text(
+                            text = if (uiState.isEditing) "Update" else "Save",
+                            modifier = Modifier
+                                .clickable {
+                                    onEvent(AddOrUpdateNoteEvent.OnNoteSaved)
+                                }
+                        )
+                    }
                 }
             )
         }
     ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
-            val state = addOrUpdateNoteViewModel.state.collectAsState().value
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
             TextField(
-                value = state.note.title,
+                modifier = Modifier.fillMaxWidth(),
+                value = uiState.note.title,
                 onValueChange = {
-                    addOrUpdateNoteViewModel.onEvent(AddOrUpdateNoteEvent.OnTitleChanged(it))
+                    onEvent(AddOrUpdateNoteEvent.OnTitleChanged(it))
                 },
-                label = { Text("Title", style = NotyTypography.h4) }
+                label = { Text("Title", style = NotyTypography.h4) },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                )
             )
 
             TextField(
-                value = state.note.content,
+                modifier = Modifier.fillMaxWidth(),
+                value = uiState.note.content,
                 onValueChange = {
-                    addOrUpdateNoteViewModel.onEvent(AddOrUpdateNoteEvent.OnContentChanged(it))
+                    onEvent(AddOrUpdateNoteEvent.OnContentChanged(it))
                 },
-                label = { Text("Description") }
-            )
-
-            Text(
-                text = "Save",
-                modifier = Modifier
-                    .padding(top = 16.dp)
-                    .clickable {
-                        addOrUpdateNoteViewModel.onEvent(AddOrUpdateNoteEvent.OnNoteSaved)
-                    }
+                label = { Text("Description", style = NotyTypography.h4) },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                )
             )
         }
     }
+}
+
+@Preview
+@Composable
+fun AddOrUpdateNotePreview() {
+    AddOrUpdateNoteContent(
+        uiState = AddOrUpdateNoteState(
+            note = Note(
+                title = "This is the note title",
+                content = "This is the content of the note that is being viewed",
+                createdAt = 0L, updatedAt = 0L
+            ),
+        )
+    ) { }
 }

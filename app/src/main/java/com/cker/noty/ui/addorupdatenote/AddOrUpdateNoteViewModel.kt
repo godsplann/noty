@@ -1,6 +1,5 @@
 package com.cker.noty.ui.addorupdatenote
 
-import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,12 +7,11 @@ import com.cker.noty.data.model.Note
 import com.cker.noty.domain.usecase.NoteCrudUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,12 +22,11 @@ class AddOrUpdateNoteViewModel @Inject constructor(
     private val _state = MutableStateFlow(AddOrUpdateNoteState())
     val state: StateFlow<AddOrUpdateNoteState> = _state
 
-    private val _effects = Channel<AddOrUpdateNoteEffect>(Channel.BUFFERED)
-    val effects = _effects.receiveAsFlow()
+    private val _effects = MutableSharedFlow<AddOrUpdateNoteEffect>()
+    val effects = _effects.asSharedFlow()
 
     init {
-        val noteId = savedStateHandle.get<Int>("noteId")
-        if (noteId != null) {
+        savedStateHandle.get<Int>("noteId")?.let { noteId ->
             _state.value = _state.value.copy(isEditing = true)
             getNoteToBeEdited(noteId)
         }
@@ -41,52 +38,37 @@ class AddOrUpdateNoteViewModel @Inject constructor(
                 _state.value = _state.value.copy(
                     note = it
                 )
-            } ?: _effects.send(AddOrUpdateNoteEffect.ShowError("Note not found"))
+            } ?: _effects.emit(AddOrUpdateNoteEffect.ShowError("Note not found"))
 
         }
     }
 
     fun onEvent(event: AddOrUpdateNoteEvent) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             when (event) {
                 is AddOrUpdateNoteEvent.OnNoteSaved -> {
                     when {
                         _state.value.note.title.isEmpty() -> {
-                            _effects.send(AddOrUpdateNoteEffect.ShowError("Title cannot be empty"))
+                            _effects.emit(AddOrUpdateNoteEffect.ShowError("Title cannot be empty"))
                         }
 
                         _state.value.note.content.isEmpty() -> {
-                            _effects.send(AddOrUpdateNoteEffect.ShowError("Description cannot be empty"))
+                            _effects.emit(AddOrUpdateNoteEffect.ShowError("Description cannot be empty"))
                         }
 
                         else -> {
-                            withContext(Dispatchers.IO) {
-                                if (_state.value.isEditing) {
-                                    noteCrudUseCase.updateNote(
-                                        _state.value.note.copy(
-                                            title = _state.value.note.title,
-                                            content = _state.value.note.content,
-                                            updatedAt = System.currentTimeMillis()
-                                        )
-                                    )
-                                } else {
-                                    noteCrudUseCase.addNote(
-                                        Note(
-                                            title = _state.value.note.title,
-                                            content = _state.value.note.content,
-                                            createdAt = System.currentTimeMillis(),
-                                            updatedAt = System.currentTimeMillis()
-                                        )
-                                    )
-                                }
+                            if (_state.value.isEditing) {
+                                updateNote()
+                            } else {
+                                addNote()
                             }
+                            onEvent(AddOrUpdateNoteEvent.OnBackPressed)
                         }
                     }
-
                 }
 
                 is AddOrUpdateNoteEvent.OnNoteSaveFailed -> {
-                    _effects.send(AddOrUpdateNoteEffect.ShowError(event.error))
+                    _effects.emit(AddOrUpdateNoteEffect.ShowError(event.error))
                 }
 
                 is AddOrUpdateNoteEvent.OnTitleChanged -> {
@@ -98,30 +80,32 @@ class AddOrUpdateNoteViewModel @Inject constructor(
                     _state.value =
                         _state.value.copy(note = _state.value.note.copy(content = event.content))
                 }
+
+                AddOrUpdateNoteEvent.OnBackPressed -> {
+                    _effects.emit(AddOrUpdateNoteEffect.NavigateBack)
+                }
             }
         }
     }
-}
 
-@Immutable
-data class AddOrUpdateNoteState(
-    val note: Note = Note(
-        title = "",
-        content = "",
-        createdAt = 0,
-        updatedAt = 0
-    ),
-    val isEditing: Boolean = false
-)
+    private suspend fun addNote() {
+        noteCrudUseCase.addNote(
+            Note(
+                title = _state.value.note.title,
+                content = _state.value.note.content,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis()
+            )
+        )
+    }
 
-sealed interface AddOrUpdateNoteEvent {
-    data class OnTitleChanged(val title: String) : AddOrUpdateNoteEvent
-    data class OnContentChanged(val content: String) : AddOrUpdateNoteEvent
-    data object OnNoteSaved : AddOrUpdateNoteEvent
-    data class OnNoteSaveFailed(val error: String) : AddOrUpdateNoteEvent
-}
-
-sealed interface AddOrUpdateNoteEffect {
-    data object NavigateToNoteList : AddOrUpdateNoteEffect
-    data class ShowError(val error: String) : AddOrUpdateNoteEffect
+    private suspend fun updateNote() {
+        noteCrudUseCase.updateNote(
+            _state.value.note.copy(
+                title = _state.value.note.title,
+                content = _state.value.note.content,
+                updatedAt = System.currentTimeMillis()
+            )
+        )
+    }
 }
