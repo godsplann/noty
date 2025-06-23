@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
@@ -19,11 +20,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,7 +47,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 object ListScreen
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Notes(
     navController: NavController = rememberNavController(),
@@ -80,11 +82,12 @@ fun NotesListContent(
     Scaffold(
         topBar = {
             TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.LightGray),
                 title = {
                     Text(
                         text = "Notes",
                         style = NotyTypography.h2,
-                        color = Color.Gray
+                        color = Color.Black
                     )
                 }
             )
@@ -92,8 +95,11 @@ fun NotesListContent(
         floatingActionButton = {
             Icon(
                 modifier = Modifier
+                    .clip(CircleShape)
+                    .background(Color.Black)
                     .clickable { onEvent(NoteListEvent.OnAddNoteClicked) }
                     .padding(16.dp),
+                tint = Color.White,
                 imageVector = Icons.Filled.Add,
                 contentDescription = "Add Note"
             )
@@ -110,6 +116,7 @@ fun NotesListContent(
             LazyColumn(
                 modifier = Modifier
                     .padding(innerPadding)
+                    .background(Color.LightGray)
                     .fillMaxSize()
             ) {
                 items(uiState.notes) { note ->
@@ -129,8 +136,8 @@ fun NoteListItem(
     Text(
         modifier = modifier
             .fillMaxWidth()
-            .padding(12.dp)
-            .clickable { onEvent(NoteListEvent.OnNoteClicked(note.id)) },
+            .clickable { onEvent(NoteListEvent.OnNoteClicked(note.id)) }
+            .padding(12.dp),
         text = note.title,
         color = Color.DarkGray,
         style = NotyTypography.h5
