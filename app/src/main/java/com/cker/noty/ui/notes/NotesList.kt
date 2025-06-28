@@ -138,7 +138,7 @@ fun NotesListContent(
                     .background(Color.DarkGray)
                     .fillMaxSize()
             ) {
-                items(uiState.notes) { note ->
+                items(items = uiState.notes, key = { it.id }) { note ->
                     NoteListItem(note = note, onEvent = onEvent)
                 }
             }
