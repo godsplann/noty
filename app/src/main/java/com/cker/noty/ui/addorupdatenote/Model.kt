@@ -11,7 +11,8 @@ data class AddOrUpdateNoteState(
         createdAt = 0,
         updatedAt = 0
     ),
-    val isEditing: Boolean = false
+    val isEditing: Boolean = false,
+    val isLoading: Boolean = true
 )
 
 sealed interface AddOrUpdateNoteEvent {

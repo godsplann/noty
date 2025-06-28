@@ -46,13 +46,6 @@ android {
     buildFeatures {
         compose = true
     }
-    configurations.all {
-        resolutionStrategy.eachDependency {
-            when {
-                requested.name == "javapoet" -> useVersion("1.13.0")
-            }
-        }
-    }
 }
 
 dependencies {
@@ -74,7 +67,6 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
-    implementation(libs.java.poet)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

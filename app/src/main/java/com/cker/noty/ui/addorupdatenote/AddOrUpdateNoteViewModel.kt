@@ -36,10 +36,10 @@ class AddOrUpdateNoteViewModel @Inject constructor(
         viewModelScope.launch {
             noteCrudUseCase.getNoteById(noteId)?.let {
                 _state.value = _state.value.copy(
-                    note = it
+                    note = it,
+                    isLoading = false
                 )
             } ?: _effects.emit(AddOrUpdateNoteEffect.ShowError("Note not found"))
-
         }
     }
 

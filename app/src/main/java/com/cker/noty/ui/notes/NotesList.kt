@@ -3,6 +3,8 @@ package com.cker.noty.ui.notes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +14,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -25,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -107,16 +112,30 @@ fun NotesListContent(
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
         if (uiState.isLoading) {
-            CircularProgressIndicator()
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.LightGray)
+            ) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
+            return@Scaffold
         } else {
             if (uiState.notes.isEmpty()) {
-                Text("No notes found")
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.LightGray)
+                ) {
+                    Text(modifier = Modifier.align(Alignment.Center), text = "No notes found")
+                }
+
                 return@Scaffold
             }
             LazyColumn(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .background(Color.LightGray)
+                    .background(Color.DarkGray)
                     .fillMaxSize()
             ) {
                 items(uiState.notes) { note ->
@@ -133,15 +152,32 @@ fun NoteListItem(
     note: Note,
     onEvent: (NoteListEvent) -> Unit
 ) {
-    Text(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onEvent(NoteListEvent.OnNoteClicked(note.id)) }
-            .padding(12.dp),
-        text = note.title,
-        color = Color.DarkGray,
-        style = NotyTypography.h5
-    )
+    Card(
+        modifier = modifier.padding(start = 6.dp, end = 6.dp, top = 12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.LightGray),
+        onClick = { onEvent(NoteListEvent.OnNoteClicked(note.id)) }
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = 8.dp)
+        ) {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+                text = note.title,
+                color = Color.DarkGray,
+                style = NotyTypography.h3
+            )
+            Text(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+                text = note.content,
+                color = Color.DarkGray,
+                style = NotyTypography.h5
+            )
+        }
+    }
 }
 
 
@@ -165,7 +201,8 @@ fun ListScreenPreview() {
                     createdAt = 12415,
                     updatedAt = 1526347
                 ),
-            )
+            ),
+            false
         ),
         onEvent = {}
     )

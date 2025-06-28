@@ -6,7 +6,7 @@ import com.cker.noty.data.model.Note
 @Immutable
 data class NoteListState(
     val notes: List<Note> = emptyList(),
-    val isLoading: Boolean = false
+    val isLoading: Boolean = true
 )
 
 sealed interface NoteListEvent {
