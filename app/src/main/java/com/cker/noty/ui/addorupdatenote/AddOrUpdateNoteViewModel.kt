@@ -29,6 +29,8 @@ class AddOrUpdateNoteViewModel @Inject constructor(
         savedStateHandle.get<Int>("noteId")?.let { noteId ->
             _state.value = _state.value.copy(isEditing = true)
             getNoteToBeEdited(noteId)
+        } ?: run {
+            _state.value = _state.value.copy(isLoading = false)
         }
     }
 

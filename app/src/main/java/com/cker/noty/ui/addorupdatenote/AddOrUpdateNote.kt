@@ -186,6 +186,8 @@ fun AddOrUpdateNotePreview() {
                 content = "This is the content of the note that is being viewed",
                 createdAt = 0L, updatedAt = 0L
             ),
+            isEditing = false,
+            isLoading = false
         )
     ) { }
 }
